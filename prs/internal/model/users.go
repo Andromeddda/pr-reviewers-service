@@ -1,0 +1,12 @@
+package model
+
+type Users struct {
+	ID			uint	`gorm:"column:id;primaryKey"`
+	Name		string  `gorm:"column:name;not null;type:text"`
+	TeamName	string  `gorm:"column:team_name;index;type:text"`
+	IsActive 	bool 	`gorm:"column:is_active;not null"`
+}
+
+func (Users) TableName() string {
+	return "users"
+}
