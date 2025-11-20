@@ -13,8 +13,13 @@ type PostgresConfig struct {
 	DB 	 string 
 }
 
+type HTTPConfig struct {
+	Port string
+}
+
 type Config struct {
-	Postgres PostgresConfig
+	Postgres 	PostgresConfig
+	HTTP 		HTTPConfig
 }
 
 func LoadConfig() *Config {
@@ -25,6 +30,9 @@ func LoadConfig() *Config {
 			User: getEnvOrDefault("POSTGRES_USER", "postgres"),
 			Pass: getEnvOrDefault("POSTGRES_PASS", "postgres"),
 			DB:   getEnvOrDefault("POSTGRES_DB",   "prs"),
+		},
+		HTTP: HTTPConfig {
+			Port: getEnvOrDefault("HTTP_PORT", "8080"),
 		},
 	}
 
