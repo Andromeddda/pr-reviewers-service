@@ -1,7 +1,7 @@
 package model
 
 type Teams struct {
-	Name		string  `gorm:"column:name;primaryKey;type:text"`
+	TeamName		string  `gorm:"column:team_name;primaryKey;type:text"`
 
 	// members are resolved by query
 }

@@ -1,8 +1,8 @@
 package model
 
 type Users struct {
-	ID			uint	`gorm:"column:id;primaryKey"`
-	Name		string  `gorm:"column:name;not null;type:text"`
+	UserID		string	`gorm:"column:user_id;primaryKey"`
+	UserName	string  `gorm:"column:username;not null;type:text"`
 	TeamName	string  `gorm:"column:team_name;index;type:text"`
 	IsActive 	bool 	`gorm:"column:is_active;not null"`
 }
