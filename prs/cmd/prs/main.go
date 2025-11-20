@@ -14,22 +14,13 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func main() {
 
 	// Initialize DB
-
     cfg := config.LoadConfig()
-
-    db, err:= gorm.Open(postgres.Open(cfg.Postgres.DSN()), &gorm.Config{})
-    if err != nil {
-        log.Fatalf("DB connect error: %v", err)
-    }
-
-    repo := repository.NewRepository(db)
+    repo, err := repository.NewRepository(cfg.Postgres.DSN())
 
 	// TODO: create service
 
