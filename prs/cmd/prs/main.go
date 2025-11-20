@@ -1,20 +1,27 @@
 package main
 
 import (
-	_ "encoding/json"
-	_ "fmt"
-	_ "log"
-	_ "math/rand"
-	_ "net/http"
-	_ "os"
-	_ "strings"
-	_ "time"
+	"log"
+	"prs/internal/config"
+	"prs/internal/repository"
 
-	_ "github.com/go-chi/chi/v5"
-	_ "gorm.io/driver/postgres"
-	_ "gorm.io/gorm"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
+
+	// DB
+
+    cfg := config.LoadConfig()
+
+    db, err:= gorm.Open(postgres.Open(cfg.Postgres.DSN()), &gorm.Config{})
+    if err != nil {
+        log.Fatalf("db connect error: %v", err)
+    }
+
+    repo := repository.NewRepository(db)
+
+
 	
 }

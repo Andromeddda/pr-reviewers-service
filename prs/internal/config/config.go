@@ -17,7 +17,7 @@ type Config struct {
 	Postgres PostgresConfig
 }
 
-func LoadConfig() (*Config) {
+func LoadConfig() *Config {
 	cfg := &Config{
 		Postgres: PostgresConfig{
 			Host: getEnvOrDefault("POSTGRES_HOST", "localhost"),
@@ -32,7 +32,7 @@ func LoadConfig() (*Config) {
 }
 
 
-func DSN(cfg PostgresConfig) string {
+func (cfg PostgresConfig) DSN() string {
 	return fmt.Sprintf(
         "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
         cfg.Host, cfg.User, cfg.Pass, cfg.DB, cfg.Port,
