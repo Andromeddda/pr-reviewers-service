@@ -9,8 +9,8 @@ import (
 
 type PRService interface {
 	AddTeam(ctx context.Context, team *dto.Team) (*dto.Team, error)
- 
-	// TODO: GetTeam
+	GetTeam(ctx context.Context, team_name string) (*dto.Team, error)
+
 	// TODO: UserSetIsActive
 	// TODO: CreatePullRequest
 	// TODO: MergePullRequest
@@ -36,7 +36,22 @@ func (prs *prservice) AddTeam(ctx context.Context, team *dto.Team) (*dto.Team, e
 		return nil, err
 	}
 
-	log.Printf("Created new Team \"%s\" with %d members: ", team.TeamName, len(team.Members))
+	log.Printf("Add new Team \"%s\" with %d members: ", team.TeamName, len(team.Members))
+	for _, m := range(team.Members) {
+		log.Printf("Team member: {\"user_id\": \"%s\", \"username\": \"%s\", \"is_active\": \"%v\"}", m.UserId, m.UserName, m.IsActive)
+	}
+
+	return team, nil
+}
+
+func (prs *prservice) GetTeam(ctx context.Context, team_name string) (*dto.Team, error) {
+	team, err := prs.repo.GetTeam(ctx, team_name)
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Get team \"%s\" with %d members: ", team.TeamName, len(team.Members))
 	for _, m := range(team.Members) {
 		log.Printf("Team member: {\"user_id\": \"%s\", \"username\": \"%s\", \"is_active\": \"%v\"}", m.UserId, m.UserName, m.IsActive)
 	}

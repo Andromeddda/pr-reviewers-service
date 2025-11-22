@@ -11,6 +11,7 @@ import (
 
 type Repository interface {
 	AddTeam(ctx context.Context, team *dto.Team) error
+	GetTeam(ctx context.Context, team_name string) (*dto.Team, error)
 }
 
 type repository struct {
@@ -85,4 +86,48 @@ func (r *repository) AddTeam(ctx context.Context, team *dto.Team) error {
 			return nil
 		},
 	)
+}
+
+func (r *repository) GetTeam(ctx context.Context, team_name string) (*dto.Team, error) {
+	var team dto.Team
+
+	tr_err := r.db.WithContext(ctx).Transaction(
+		func(tx *gorm.DB) error {
+			var teamList []model.Teams
+			err := tx.Model(&model.Teams{}).Where("team_name = ?", team_name).Find(&teamList).Error
+
+			if err != nil {
+				return err
+			}
+
+			if len(teamList) != 1 {
+				return ErrTeamNotFound
+			}
+
+			var userList []model.Users
+			err = tx.Model(&model.Users{}).Where("team_name = ?", team_name).Find(&userList).Error
+
+			if err != nil {
+				return err
+			}
+
+			team.TeamName = teamList[0].TeamName
+
+			for _, m := range(userList) {
+				team.Members = append(team.Members, dto.TeamMember{
+					UserId: m.UserID,
+					UserName: m.UserName,
+					IsActive: m.IsActive,
+				})
+			}
+		
+			return nil
+		})
+
+	if tr_err != nil {
+		return nil, tr_err
+	}
+
+	return &team, nil
+
 }
