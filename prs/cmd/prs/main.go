@@ -9,6 +9,7 @@ import (
 	"prs/internal/config"
 	"prs/internal/handler"
 	"prs/internal/repository"
+	"prs/internal/service"
 	"syscall"
 
 	"time"
@@ -25,15 +26,16 @@ func main() {
 		log.Fatalf("Database error %v", err)
 	}
 
+	// Initialize service
+	service := service.NewPRService(repo)
 
-	// TODO: create service
-
-	//  Initialize router
-
+	// Initialize router
 	r := chi.NewRouter()
 
-	handler.RegisterRouters(r) // TODO: mapping 
+	// Mapping
+	handler.RegisterRouters(r, service)
 
+	// Create HTTP handler
 	server := &http.Server{
 		Addr:         ":" + cfg.HTTP.Port,
 		Handler:      r,
@@ -43,7 +45,6 @@ func main() {
 	}
 
 	// Start service
-
 	sigTermChan := make(chan os.Signal, 1)
 	signal.Notify(sigTermChan, os.Interrupt, syscall.SIGTERM)
 
@@ -56,7 +57,6 @@ func main() {
 	log.Println("PRs Service started")
 
 	// Shutdown by signal
-
 	<-sigTermChan
 
 	log.Println("Stopping PRs Service...")

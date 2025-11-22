@@ -1,7 +1,11 @@
 package handler
 
-import "github.com/go-chi/chi/v5"
+import (
+	"prs/internal/service"
 
-func RegisterRouters(r chi.Router) {
+	"github.com/go-chi/chi/v5"
+)
+
+func RegisterRouters(r chi.Router, s service.PRService) {
 	// TODO
 }
