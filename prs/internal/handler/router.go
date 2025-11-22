@@ -7,5 +7,9 @@ import (
 )
 
 func RegisterRouters(r chi.Router, s service.PRService) {
-	// TODO
+	handler := NewPRSHandler(s)
+
+	r.Route("/team", func (r chi.Router) {
+		r.Post("/add", handler.AddTeam)
+	})
 }

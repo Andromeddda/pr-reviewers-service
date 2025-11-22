@@ -10,7 +10,7 @@ import (
 )
 
 type Repository interface {
-	AddTeam(ctx context.Context, team dto.Team) error
+	AddTeam(ctx context.Context, team *dto.Team) error
 }
 
 type repository struct {
@@ -22,12 +22,23 @@ func NewRepository(dsn string) (Repository, error) {
    if err != nil {
       return nil, err
    }
+
+   err = db.AutoMigrate(
+	&model.Users{},
+	&model.Teams{},
+	&model.PullRequest{},
+   )
+
+   if err != nil {
+	return nil, err
+   }
+
    return &repository{
       db: db,
    }, nil
 }
 
-func (r *repository) AddTeam(ctx context.Context, team dto.Team) error {
+func (r *repository) AddTeam(ctx context.Context, team *dto.Team) error {
 	return r.db.WithContext(ctx).Transaction(
 		func(tx *gorm.DB) error {
 

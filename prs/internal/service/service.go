@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"log"
 	"prs/internal/dto"
 	"prs/internal/repository"
 )
 
 type PRService interface {
-	AddTeam(ctx context.Context, team *dto.Team) (*dto.Team, *dto.ErrorResponse)
+	AddTeam(ctx context.Context, team *dto.Team) (*dto.Team, error)
  
 	// TODO: GetTeam
 	// TODO: UserSetIsActive
@@ -28,8 +29,18 @@ func NewPRService(repository repository.Repository) PRService {
 	}	
 }
 
-func (prs *prservice) AddTeam(ctx context.Context, team *dto.Team) (*dto.Team, *dto.ErrorResponse) {
-	// TODO
+func (prs *prservice) AddTeam(ctx context.Context, team *dto.Team) (*dto.Team, error) {
+	err := prs.repo.AddTeam(ctx, team)
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Created new Team \"%s\" with %d members: ", team.TeamName, len(team.Members))
+	for _, m := range(team.Members) {
+		log.Printf("Team member: {\"user_id\": \"%s\", \"username\": \"%s\", \"is_active\": \"%v\"}", m.UserId, m.UserName, m.IsActive)
+	}
+
 	return team, nil
 }
 
