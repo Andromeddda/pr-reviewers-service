@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -41,16 +42,22 @@ func LoadConfig() *Config {
 
 
 func (cfg PostgresConfig) DSN() string {
-	return fmt.Sprintf(
+	dsn := fmt.Sprintf(
         "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
         cfg.Host, cfg.User, cfg.Pass, cfg.DB, cfg.Port,
     )
+
+	log.Printf("DSN: %s", dsn)
+
+	return dsn
 }
 
 func getEnvOrDefault(key, def string) string {
 	v := os.Getenv(key)
 	if v != "" {
-		return v 
+		return v
 	}
+
+	log.Printf("Key %s not found. Using default %s", key, def)
 	return def
 }
