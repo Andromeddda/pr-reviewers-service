@@ -21,6 +21,10 @@ func main() {
 	// Initialize DB
     cfg := config.LoadConfig()
     repo, err := repository.NewRepository(cfg.Postgres.DSN())
+	if err != nil {
+		log.Fatalf("Database error %v", err)
+	}
+
 
 	// TODO: create service
 
