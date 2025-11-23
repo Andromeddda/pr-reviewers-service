@@ -11,7 +11,6 @@ type PullRequest struct {
 	AuthorId			string					`json:"author_id"`	
 	Status				model.PullRequestStatus `json:"status"`
 	AssignedReviewers	[]string				`json:"assigned_reviewers"`
-	CreatedAt			*time.Time				`json:"created_at,omitempty"`	
+	CreatedAt			time.Time				`json:"created_at,omitempty"`	
 	MergedAt			*time.Time				`json:"merged_at,omitempty"`
-
 }

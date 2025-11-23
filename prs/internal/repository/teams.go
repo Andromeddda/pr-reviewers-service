@@ -16,7 +16,6 @@ func (r *Repository) TeamExist(ctx context.Context, team_name string) (bool, err
 	return count == 1, nil
 }
 
-
 func (r *Repository) GetTeam(ctx context.Context, team_name string) (*model.Team, error) {
 	var res model.Team
 	err := r.DB.Model(&model.Team{}).Where("team_name = ?", team_name).Find(&res).Error
@@ -27,7 +26,6 @@ func (r *Repository) GetTeam(ctx context.Context, team_name string) (*model.Team
 
 	return &res, nil
 }
-
 
 func (r *Repository) AddTeam(ctx context.Context, team *model.Team) error {
 	return  r.DB.WithContext(ctx).Create(team).Error
