@@ -172,3 +172,36 @@ func (h* PRSHandler) CreatePullRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(res)
 }
+
+func (h* PRSHandler) MergePullRequest(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+        PullRequestID   string 	`json:"pull_request_id"`
+    }
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Printf("ERROR: Invalid request body for CreatePullRequest: %s", err.Error())
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return 
+	}
+
+	res, err := h.service.MergePullRequest(r.Context(), body.PullRequestID)
+	if err != nil {
+		// 404
+		if errors.Is(err, service.ErrPRNotFound) {
+			message := fmt.Sprintf("MergePullRequest pull_request_id=%s : %s", body.PullRequestID, err.Error())
+			log.Println(message)
+			h.writeError(w, http.StatusNotFound, dto.ErrorNotFound, message)
+			return
+		}
+
+		// 500
+		log.Printf("ERROR: Error merging pull request: %s", err.Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// 200
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+}

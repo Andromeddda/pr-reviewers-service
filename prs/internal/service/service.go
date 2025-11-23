@@ -17,11 +17,7 @@ type PRService interface {
 	GetTeam(ctx context.Context, team_name string) (*dto.Team, error)
 	UserSetIsActive(ctx context.Context, user_id string, is_active bool) (*dto.User, error)
 	CreatePullRequest(ctx context.Context, pull_request_id, pull_request_name, author_id string) (*dto.PullRequest, error)
-
-
-	// TODO: UserSetIsActive
-	// TODO: CreatePullRequest
-	// TODO: MergePullRequest
+	MergePullRequest(ctx context.Context, pull_request_id string) (*dto.PullRequest, error)
 	// TODO: ReassignPullRequest
 	// TODO: UserGetReview
 
@@ -313,3 +309,67 @@ func pickRandomReviewers(author_id string, members []model.User) []string {
 	return result
 }
 
+func (prs *prservice) MergePullRequest(ctx context.Context, pull_request_id string) (*dto.PullRequest, error) {
+	var res *dto.PullRequest
+	
+	err := prs.repo.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := prs.repo.WithTx(tx)
+
+		// Check if exist
+		pr_exist, err := repo.PullRequestExist(ctx, pull_request_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		if !pr_exist {
+			return ErrPRNotFound // Pull Request not found
+		}
+
+		// Get
+		pr, err := repo.GetPullRequest(ctx, pull_request_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		// Merge
+ 		if pr.Status != model.PullRequestStatusMerged {
+			err = repo.MergePullRequest(ctx, pull_request_id)
+		}
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		assigned_reviewers, err := repo.GetPullRequestReviewers(ctx, pull_request_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		res, err = mapper.PullRequestToDTO(pr, assigned_reviewers)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[MERGE PULL REQUEST] {\"%s\", \"%s\"} by  \"%s\" with %d reviewers: ", 
+		res.PullRequestId, 
+		res.PullRequestName,
+		res.AuthorId, 
+		len(res.AssignedReviewers))
+
+	for _, m := range(res.AssignedReviewers) {
+		log.Printf("Reviewer: \"user_id\": \"%s\"", m)
+	}
+
+	return res, nil
+}

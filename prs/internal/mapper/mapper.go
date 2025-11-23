@@ -65,6 +65,7 @@ func PullRequestToDTO(pr *model.PullRequest, reviewers []model.PullRequestReview
 		PullRequestId: pr.PullRequestID,
 		PullRequestName: pr.PullRequestName,
 		AuthorId: pr.AuthorID,
+		Status: pr.Status,
 		CreatedAt: pr.CreatedAt,
 		MergedAt: pr.MergedAt,
 		AssignedReviewers: assigned_reviewers,
