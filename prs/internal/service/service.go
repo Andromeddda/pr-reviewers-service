@@ -18,7 +18,7 @@ type PRService interface {
 	UserSetIsActive(ctx context.Context, user_id string, is_active bool) (*dto.User, error)
 	CreatePullRequest(ctx context.Context, pull_request_id, pull_request_name, author_id string) (*dto.PullRequest, error)
 	MergePullRequest(ctx context.Context, pull_request_id string) (*dto.PullRequest, error)
-	// TODO: ReassignPullRequest
+	ReassignPullRequest(ctx context.Context, pull_request_id, old_user_id string) (*dto.PullRequestReassigned, error)
 	// TODO: UserGetReview
 
 }
@@ -328,7 +328,6 @@ func (prs *prservice) MergePullRequest(ctx context.Context, pull_request_id stri
 
 		// Get
 		pr, err := repo.GetPullRequest(ctx, pull_request_id)
-
 		if err != nil {
 			return err // Internal error
 		}
@@ -348,6 +347,7 @@ func (prs *prservice) MergePullRequest(ctx context.Context, pull_request_id stri
 			return err // Internal error
 		}
 
+		pr.Status = model.PullRequestStatusMerged
 		res, err = mapper.PullRequestToDTO(pr, assigned_reviewers)
 
 		if err != nil {
@@ -370,6 +370,135 @@ func (prs *prservice) MergePullRequest(ctx context.Context, pull_request_id stri
 	for _, m := range(res.AssignedReviewers) {
 		log.Printf("Reviewer: \"user_id\": \"%s\"", m)
 	}
+
+	return res, nil
+}
+
+func (prs *prservice) ReassignPullRequest(ctx context.Context, pull_request_id, old_user_id string) (*dto.PullRequestReassigned, error) {
+	var res *dto.PullRequestReassigned
+	
+	err := prs.repo.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := prs.repo.WithTx(tx)
+
+		// Check if exist
+		pr_exist, err := repo.PullRequestExist(ctx, pull_request_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		if !pr_exist {
+			return ErrPRNotFound // Pull Request not found
+		}
+
+		// Get
+		pr, err := repo.GetPullRequest(ctx, pull_request_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		// Check if merged
+ 		if pr.Status == model.PullRequestStatusMerged {
+			return ErrPRMerged
+		}
+
+		assigned_reviewers, err := repo.GetPullRequestReviewers(ctx, pull_request_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		// Check if old user was assigned
+
+		func_check_if_in_slice := func (id string, users []model.PullRequestReviewer) bool {
+			for _, r := range(users) {
+				if id == r.UserID {
+					return true
+				}
+			}
+			return false
+		}
+
+		if !func_check_if_in_slice(old_user_id, assigned_reviewers) {
+			return ErrNotAssigned // Not Assigned
+		}
+
+		// Find new candidates
+
+		author, err := repo.GetUser(ctx, pr.AuthorID)
+		if err != nil {
+			return err // Internal error
+		}
+
+		members, err := repo.GetTeamMembers(ctx, author.TeamName)
+		if err != nil {
+			return err // Internal error
+		}
+
+		candidates := make([]model.User, 0, len(members))
+		for _, m := range members {
+			// Is author
+			if m.UserID == author.UserID {
+				continue
+			}
+
+			// Is old reviewer
+			if func_check_if_in_slice(m.UserID, assigned_reviewers) {
+				continue
+			}
+
+			// Isn't active
+			if !m.IsActive {
+				continue
+			}
+
+			candidates = append(candidates, m)
+		}
+
+		// No candidate
+		if len(candidates) == 0 {
+			return ErrNoCandidate 
+		}
+
+		// Shuffle
+		rand.Shuffle(len(candidates), func(i, j int) {
+			candidates[i], candidates[j] = candidates[j], candidates[i]
+		})
+
+		// Reassign
+		err = repo.PullRequestReassign(ctx, pr.PullRequestID, old_user_id, candidates[0].UserID)
+		if err != nil {
+			return err // Internal error
+		}
+
+		// Get NEW reviewers
+		assigned_reviewers, err = repo.GetPullRequestReviewers(ctx, pull_request_id)
+		if err != nil {
+			return err // Internal error
+		}
+
+		PR, err := mapper.PullRequestToDTO(pr, assigned_reviewers)
+		if err != nil {
+			return err // Internal error
+		}
+
+
+		res = dto.NewPRReassigned(PR, candidates[0].UserID)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[REASSIGN PULL REQUEST] {\"%s\", \"%s\"} by  \"%s\" with %d reviewers. New reviewer: \"%s\"", 
+		res.PR.PullRequestId, 
+		res.PR.PullRequestName,
+		res.PR.AuthorId, 
+		len(res.PR.AssignedReviewers),
+		res.ReplacedBy)
 
 	return res, nil
 }

@@ -21,5 +21,6 @@ func RegisterRouters(r chi.Router, s service.PRService) {
 	r.Route("/pullRequest", func (r chi.Router) {
 		r.Post("/create", handler.CreatePullRequest)
 		r.Post("/merge", handler.MergePullRequest)
+		r.Post("/reassign", handler.ReassignPullRequest)
 	})
 }

@@ -205,3 +205,61 @@ func (h* PRSHandler) MergePullRequest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(res)
 }
+
+func (h* PRSHandler) ReassignPullRequest(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+        PullRequestID   string 	`json:"pull_request_id"`
+		OldUserId   	string 	`json:"old_user_id"`
+    }
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Printf("ERROR: Invalid request body for ReassignPullRequest: %s", err.Error())
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return 
+	}
+
+	res, err := h.service.ReassignPullRequest(r.Context(), body.PullRequestID, body.OldUserId)
+	if err != nil {
+		// 404
+		if errors.Is(err, service.ErrPRNotFound) {
+			message := fmt.Sprintf("ReassignPullRequest pull_request_id=%s : %s", body.PullRequestID, err.Error())
+			log.Println(message)
+			h.writeError(w, http.StatusNotFound, dto.ErrorNotFound, message)
+			return
+		}
+
+		// 409
+		if errors.Is(err, service.ErrPRMerged) {
+			message := fmt.Sprintf("ReassignPullRequest pull_request_id=%s : %s", body.PullRequestID, err.Error())
+			log.Println(message)
+			h.writeError(w, http.StatusConflict, dto.ErrorPRMerged, message)
+			return
+		}
+
+		// 409
+		if errors.Is(err, service.ErrNotAssigned) {
+			message := fmt.Sprintf("ReassignPullRequest pull_request_id=%s : %s", body.PullRequestID, err.Error())
+			log.Println(message)
+			h.writeError(w, http.StatusConflict, dto.ErrorNotAssigned, message)
+			return
+		}
+
+		// 409
+		if errors.Is(err, service.ErrNoCandidate) {
+			message := fmt.Sprintf("ReassignPullRequest pull_request_id=%s : %s", body.PullRequestID, err.Error())
+			log.Println(message)
+			h.writeError(w, http.StatusConflict, dto.ErrorNoCandidate, message)
+			return
+		}
+
+		// 500
+		log.Printf("ERROR: Error merging pull request: %s", err.Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// 200
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+}

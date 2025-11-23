@@ -52,3 +52,11 @@ func (r *Repository) MergePullRequest(ctx context.Context, pull_request_id strin
         Where("pull_request_id = ?", pull_request_id).
         Update("status", model.PullRequestStatusMerged).Error
 }
+
+
+func (r *Repository) PullRequestReassign(ctx context.Context, pull_request_id, old_reviewer, new_reviewer string) error {
+	return r.DB.WithContext(ctx).
+        Model(&model.PullRequestReviewer{}).
+        Where("(pull_request_id = ?) AND (user_id = ?)", pull_request_id, old_reviewer).
+        Update("user_id", new_reviewer).Error
+}
