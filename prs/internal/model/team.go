@@ -1,11 +1,11 @@
 package model
 
-type Teams struct {
+type Team struct {
 	TeamName		string  `gorm:"column:team_name;primaryKey;type:text"`
 
 	// members are resolved by query
 }
 
-func (Teams) TableName() string {
+func (Team) TableName() string {
 	return "teams"
 }
