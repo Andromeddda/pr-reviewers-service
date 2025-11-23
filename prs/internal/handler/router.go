@@ -16,6 +16,7 @@ func RegisterRouters(r chi.Router, s service.PRService) {
 
 	r.Route("/users", func (r chi.Router) {
 		r.Post("/setIsActive", handler.UserSetIsActive)
+		r.Get("/getReview", handler.UsersGetReview)
 	})
 
 	r.Route("/pullRequest", func (r chi.Router) {

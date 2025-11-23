@@ -263,3 +263,28 @@ func (h* PRSHandler) ReassignPullRequest(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(res)
 }
+
+func (h* PRSHandler) UsersGetReview(w http.ResponseWriter, r *http.Request) {
+	user_id := r.URL.Query().Get("user_id")
+
+	res, err := h.service.UsersGetReview(r.Context(), user_id)
+	if err != nil {
+		// 404
+		if errors.Is(err, service.ErrUserNotFound) {
+			message := fmt.Sprintf("UsersGetReview user_id=%s : %s", user_id, err.Error())
+			log.Println(message)
+			h.writeError(w, http.StatusNotFound, dto.ErrorNotFound, message)
+			return
+		}
+
+		// 500
+		log.Printf("ERROR: Error getting user's reviews: %s", err.Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// 200
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+}

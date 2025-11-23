@@ -46,6 +46,18 @@ func (r *Repository) GetPullRequestReviewers(ctx context.Context, pull_request_i
 	return res, nil
 }
 
+func (r *Repository) GetUsersPullRequests(ctx context.Context, user_id string) ([]model.PullRequestReviewer, error) {
+	var res []model.PullRequestReviewer
+	err := r.DB.Model(&model.PullRequestReviewer{}).Where("user_id = ?", user_id).Find(&res).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+
 func (r *Repository) MergePullRequest(ctx context.Context, pull_request_id string) error {
 	return r.DB.WithContext(ctx).
         Model(&model.PullRequest{}).

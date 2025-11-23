@@ -19,8 +19,7 @@ type PRService interface {
 	CreatePullRequest(ctx context.Context, pull_request_id, pull_request_name, author_id string) (*dto.PullRequest, error)
 	MergePullRequest(ctx context.Context, pull_request_id string) (*dto.PullRequest, error)
 	ReassignPullRequest(ctx context.Context, pull_request_id, old_user_id string) (*dto.PullRequestReassigned, error)
-	// TODO: UserGetReview
-
+	UsersGetReview(ctx context.Context, user_id string) (*dto.UsersGetReview, error) 
 }
 
 type prservice struct {
@@ -499,6 +498,59 @@ func (prs *prservice) ReassignPullRequest(ctx context.Context, pull_request_id, 
 		res.PR.AuthorId, 
 		len(res.PR.AssignedReviewers),
 		res.ReplacedBy)
+
+	return res, nil
+}
+
+func (prs *prservice) UsersGetReview(ctx context.Context, user_id string) (*dto.UsersGetReview, error) {
+	var res *dto.UsersGetReview
+	
+	err := prs.repo.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := prs.repo.WithTx(tx)
+
+		// Check if exist
+		user_exist, err := repo.UserExist(ctx, user_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		if !user_exist {
+			return ErrUserNotFound // User not found
+		}
+
+		reviewers, err := repo.GetUsersPullRequests(ctx, user_id)
+		if err != nil {
+			return err // Internal error
+		}
+
+		prs := make([]dto.PullRequestShort, 0, len(reviewers))
+		for _, r := range(reviewers) {
+			pr, err := repo.GetPullRequest(ctx, r.PullRequestID)
+			if err != nil {
+				return err // Internal error
+			}
+
+			prs = append(prs, dto.PullRequestShort{
+				PullRequestId: pr.PullRequestID,
+				PullRequestName: pr.PullRequestName,
+				AuthorId: pr.AuthorID,
+				Status: pr.Status,
+			})
+		}
+
+		res = dto.NewUsersGetReview(user_id, prs)
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[GET USER'S REVIEWS] user_id=\"%s\" reviews %d PRs ", 
+		res.UserID, 
+		len(res.PullRequests))
 
 	return res, nil
 }
