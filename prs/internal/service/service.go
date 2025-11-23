@@ -5,6 +5,7 @@ import (
 	"log"
 	"prs/internal/dto"
 	"prs/internal/mapper"
+	"prs/internal/model"
 	"prs/internal/repository"
 
 	"gorm.io/gorm"
@@ -13,6 +14,8 @@ import (
 type PRService interface {
 	AddTeam(ctx context.Context, team *dto.Team) (*dto.Team, error)
 	GetTeam(ctx context.Context, team_name string) (*dto.Team, error)
+	UserSetIsActive(ctx context.Context, user_id string, is_active bool) (*dto.User, error)
+
 
 	// TODO: UserSetIsActive
 	// TODO: CreatePullRequest
@@ -135,5 +138,53 @@ func (prs *prservice) GetTeam(ctx context.Context, team_name string) (*dto.Team,
 	return res, nil
 
 }
+
+func (prs *prservice) UserSetIsActive(ctx context.Context, user_id string, is_active bool) (*dto.User, error) {
+	var user *model.User
+
+	tr_err := prs.repo.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := prs.repo.WithTx(tx)
+
+		// Check if user exist
+		user_exist, err := repo.UserExist(ctx, user_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		if !user_exist {
+			return ErrUserNotFound // User not found
+		}
+
+		// Update user
+		err = repo.UserSetIsActive(ctx, user_id, is_active)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		// Return updated user
+		u, err := repo.GetUser(ctx, user_id)
+
+		if err != nil {
+			return err
+		}
+
+		user = u
+
+		return nil
+	})
+
+	if tr_err != nil {
+		return nil, tr_err
+	}
+
+	res := mapper.UserToDTO(user)
+
+	log.Printf("[USER SET IS ACTIVE] {%s, %s, %s, %v}", res.UserID, res.UserName, res.TeamName, res.IsActive)
+	return res, nil
+
+}
+
 
 

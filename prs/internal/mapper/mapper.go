@@ -40,3 +40,12 @@ func TeamToDTO(team *model.Team, users []model.User) (*dto.Team, error) {
 
 	return &res, nil
 }
+
+func UserToDTO(user *model.User) *dto.User {
+	return &dto.User{
+		UserID: user.UserID,
+		UserName: user.UserName,
+		TeamName: user.TeamName,
+		IsActive: user.IsActive,
+	}
+}

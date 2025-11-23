@@ -95,3 +95,37 @@ func (h* PRSHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(res)
 }
+
+
+func (h* PRSHandler) UserSetIsActive(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+        UserID   string `json:"user_id"`
+        IsActive bool   `json:"is_active"`
+    }
+
+    if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+        http.Error(w, "invalid body", http.StatusBadRequest)
+        return
+    }
+
+	res, err := h.service.UserSetIsActive(r.Context(), body.UserID, body.IsActive)
+	if err != nil {
+		// 404
+		if errors.Is(err, service.ErrUserNotFound) {
+			message := fmt.Sprintf("UserSetIsActive user_id=%s : %s", body.UserID, err.Error())
+			log.Println(message)
+			h.writeError(w, http.StatusNotFound, dto.ErrorNotFound, message)
+			return
+		}
+
+		// 500
+		log.Printf("ERROR: Error updating user: %s", err.Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// 200
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(res)
+}
