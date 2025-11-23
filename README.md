@@ -62,6 +62,24 @@ docker compose stop
 
 [``tests/postman/PRS.postman_collection.json``](tests/postman/PRS.postman_collection.json)
 
+**Рекомендуемый порядок запросов из коллекции:**
+1. ``POST /team/add`` - создать команду из 4-х человек - ``201 Created`` 
+
+2. ``POST /pullRequest/create`` - открыть Pull-Request - ``201 Created``
+
+3. ``POST /pullRequest/reassign`` - запросить переназначение - ``409 No Candidate``
+
+4. ``POST /users/setIsActive`` - сменить статус пользователя  - ``200 OK``
+
+5. ``POST /pullRequest/reassign`` - запросить переназначение  - ``200 OK``
+
+6. ``POST /pullRequest/merge`` - закрыть Pull-Request  - ``200 OK``
+
+7. ``POST /pullRequest/merge`` - закрыть Pull-Request ещё раз - ``200 OK``
+
+8. ``POST /pullRequest/reassign`` - запросить переназначение - ``409 Merged``
+
+
 ### Нагрузочное тестирование
 
 **Требования:**
