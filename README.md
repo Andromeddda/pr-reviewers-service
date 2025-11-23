@@ -56,6 +56,12 @@ docker compose stop
 
 ## Тестирование
 
+### Мануальное E2E-тестирование
+
+**Postman v2.1 коллекция:**
+
+[``tests/postman/PRS.postman_collection.json``](tests/postman/PRS.postman_collection.json)
+
 ### Нагрузочное тестирование
 
 **Требования:**

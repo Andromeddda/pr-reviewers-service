@@ -1,0 +1,274 @@
+{
+	"info": {
+		"_postman_id": "bd6df4e5-fcb6-4186-b719-6a1bdd7ae433",
+		"name": "PRS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45718920",
+		"_collection_link": "https://andrewshikalov.postman.co/workspace/Andrew-Shikalov's-Workspace~2e35a94a-efef-4c31-87dd-31b219235a44/collection/45718920-bd6df4e5-fcb6-4186-b719-6a1bdd7ae433?action=share&source=collection_link&creator=45718920"
+	},
+	"item": [
+		{
+			"name": "http://127.0.0.1:8080/team/add",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"team_name\": \"payment\",\n    \"members\":  [\n        {\n            \"user_id\": \"u1\",\n            \"username\": \"Alice\",\n            \"is_active\": true\n        },\n        {\n            \"user_id\": \"u2\",\n            \"username\": \"Bob\",\n            \"is_active\": false\n        },\n        {\n            \"user_id\": \"u3\",\n            \"username\": \"Carl\",\n            \"is_active\": true\n        },\n        {\n            \"user_id\": \"u4\",\n            \"username\": \"Daniel\",\n            \"is_active\": true\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8080/team/add",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"team",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:8080/team/get?team_name=payment",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/team/get?team_name=payment",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"team",
+						"get"
+					],
+					"query": [
+						{
+							"key": "team_name",
+							"value": "payment"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:8080/team/get?team_name=auth",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/team/get?team_name=auth",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"team",
+						"get"
+					],
+					"query": [
+						{
+							"key": "team_name",
+							"value": "auth"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:8080/users/setIsActive",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\": \"u2\",\n    \"is_active\": true\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8080/users/setIsActive",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"setIsActive"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:8080/pullRequest/create",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"pull_request_id\": \"pr-1002\",\n    \"pull_request_name\": \"Add log\",\n    \"author_id\": \"u1\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8080/pullRequest/create",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"pullRequest",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:8080/pullRequest/merge",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"pull_request_id\": \"pr-1002\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8080/pullRequest/merge",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"pullRequest",
+						"merge"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:8080/pullRequest/reassign",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"pull_request_id\": \"pr-1002\",\n    \"old_user_id\": \"u3\"\n}"
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8080/pullRequest/reassign",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"pullRequest",
+						"reassign"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://127.0.0.1:8080/users/getReview?user_id=u2",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/users/getReview?user_id=u3",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"getReview"
+					],
+					"query": [
+						{
+							"key": "user_id",
+							"value": "u3"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
