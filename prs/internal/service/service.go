@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"log"
+	"math/rand/v2"
 	"prs/internal/dto"
 	"prs/internal/mapper"
 	"prs/internal/model"
@@ -15,6 +16,7 @@ type PRService interface {
 	AddTeam(ctx context.Context, team *dto.Team) (*dto.Team, error)
 	GetTeam(ctx context.Context, team_name string) (*dto.Team, error)
 	UserSetIsActive(ctx context.Context, user_id string, is_active bool) (*dto.User, error)
+	CreatePullRequest(ctx context.Context, pull_request_id, pull_request_name, author_id string) (*dto.PullRequest, error)
 
 
 	// TODO: UserSetIsActive
@@ -186,5 +188,128 @@ func (prs *prservice) UserSetIsActive(ctx context.Context, user_id string, is_ac
 
 }
 
+func (prs *prservice) CreatePullRequest(ctx context.Context, pull_request_id, pull_request_name, author_id string) (*dto.PullRequest, error) {
+	var res *dto.PullRequest
+	
+	err := prs.repo.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		repo := prs.repo.WithTx(tx)
 
+		// Check if already exist
+		pr_exist, err := repo.PullRequestExist(ctx, pull_request_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		if pr_exist {
+			return ErrPRExist // Pull Request already exist
+		}
+
+		// Create PR
+		pr := model.NewPullRequest(pull_request_id, pull_request_name, author_id)
+		err = repo.PullRequestCreate(ctx, pr)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		// Get author
+
+		author_exist, err := repo.UserExist(ctx, author_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		if !author_exist {
+			return ErrAuthorNotFound // Author not found
+		}
+
+		author, err := repo.GetUser(ctx, author_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		// Assign reviewers
+
+		members, err := repo.GetTeamMembers(ctx, author.TeamName)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		reviewers := pickRandomReviewers(author_id, members)
+
+		for _, r := range(reviewers) {
+			err = repo.AddReviewer(ctx, &model.PullRequestReviewer{
+				PullRequestID: pull_request_id,
+				UserID: r,
+			})
+
+			if err != nil {
+				return err // Internal error
+			}
+		}
+
+		assigned_reviewers, err := repo.GetPullRequestReviewers(ctx, pull_request_id)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		res, err = mapper.PullRequestToDTO(pr, assigned_reviewers)
+
+		if err != nil {
+			return err // Internal error
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[CREATE PULL REQUEST] {\"%s\", \"%s\"} by  \"%s\" with %d reviewers: ", 
+		res.PullRequestId, 
+		res.PullRequestName,
+		res.AuthorId, 
+		len(res.AssignedReviewers))
+
+	for _, m := range(res.AssignedReviewers) {
+		log.Printf("Reviewer: \"user_id\": \"%s\"", m)
+	}
+
+	return res, nil
+}
+
+func pickRandomReviewers(author_id string, members []model.User) []string {
+	// Exclude author and inactive users
+	candidates := make([]model.User, 0, len(members))
+	for _, m := range members {
+		if m.UserID != author_id && m.IsActive {
+			candidates = append(candidates, m)
+		}
+	}
+
+	// No candidates
+	if len(candidates) == 0 {
+		return []string{}
+	}
+
+	// Shuffle
+	rand.Shuffle(len(candidates), func(i, j int) {
+		candidates[i], candidates[j] = candidates[j], candidates[i]
+	})
+
+	// Choose candidates
+	n := min(2, len(candidates))
+	result := make([]string, n)
+	for i := 0; i < n; i++ {
+		result[i] = candidates[i].UserID
+	}
+
+	return result
+}
 

@@ -49,3 +49,24 @@ func UserToDTO(user *model.User) *dto.User {
 		IsActive: user.IsActive,
 	}
 }
+
+func PullRequestToDTO(pr *model.PullRequest, reviewers []model.PullRequestReviewer) (*dto.PullRequest, error) {
+	var assigned_reviewers = make([]string, len(reviewers))
+
+	for i, r := range(reviewers) {
+		assigned_reviewers[i] = r.UserID
+
+		if r.PullRequestID != pr.PullRequestID {
+			return nil, errors.New("reviewer's pull_request_id does not match PR")
+		}
+	}
+	
+	return &dto.PullRequest{
+		PullRequestId: pr.PullRequestID,
+		PullRequestName: pr.PullRequestName,
+		AuthorId: pr.AuthorID,
+		CreatedAt: pr.CreatedAt,
+		MergedAt: pr.MergedAt,
+		AssignedReviewers: assigned_reviewers,
+	}, nil
+}

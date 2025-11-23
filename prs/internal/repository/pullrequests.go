@@ -31,7 +31,7 @@ func (r *Repository) GetPullRequest(ctx context.Context, pull_request_id string)
 	return &res, nil
 }
 
-func (r *Repository) AddReviewer(ctx context.Context, reviewer model.PullRequestReviewer) error {
+func (r *Repository) AddReviewer(ctx context.Context, reviewer *model.PullRequestReviewer) error {
 	return r.DB.WithContext(ctx).Create(reviewer).Error
 }
 

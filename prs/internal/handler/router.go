@@ -17,4 +17,8 @@ func RegisterRouters(r chi.Router, s service.PRService) {
 	r.Route("/users", func (r chi.Router) {
 		r.Post("/setIsActive", handler.UserSetIsActive)
 	})
+
+	r.Route("/pullRequest", func (r chi.Router) {
+		r.Post("/create", handler.CreatePullRequest)
+	})
 }

@@ -28,6 +28,7 @@ func NewRepository(dsn string) (*Repository, error) {
 	&model.User{},
 	&model.Team{},
 	&model.PullRequest{},
+	&model.PullRequestReviewer{},
    )
 
    if err != nil {
