@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Initialize service
-	service := service.NewPRService(repo)
+	service := service.NewPRService(*repo)
 
 	// Initialize router
 	r := chi.NewRouter()

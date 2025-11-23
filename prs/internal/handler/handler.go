@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"prs/internal/dto"
-	"prs/internal/repository"
 	"prs/internal/service"
 )
 
@@ -47,7 +46,7 @@ func (h* PRSHandler) AddTeam(w http.ResponseWriter, r *http.Request) {
 	res, err := h.service.AddTeam(r.Context(), &request)
 	if err != nil {
 		// 400
-		if errors.Is(err, repository.ErrTeamExist) {
+		if errors.Is(err, service.ErrTeamExist) {
 			message := fmt.Sprintf("AddTeam team_name=%s : %s", request.TeamName, err.Error())
 			log.Println(message)
 			h.writeError(w, http.StatusBadRequest, dto.ErrorTeamExist, message)
@@ -78,7 +77,7 @@ func (h* PRSHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
 	res, err := h.service.GetTeam(r.Context(), team_name)
 	if err != nil {
 		// 404
-		if errors.Is(err, repository.ErrTeamNotFound) {
+		if errors.Is(err, service.ErrTeamNotFound) {
 			message := fmt.Sprintf("GetTeam team_name=%s : %s", team_name, err.Error())
 			log.Println(message)
 			h.writeError(w, http.StatusNotFound, dto.ErrorNotFound, message)
